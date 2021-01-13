@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"array": "cpp",
+			"istream": "cpp",
+			"ostream": "cpp",
+			"tuple": "cpp",
+			"type_traits": "cpp",
+			"utility": "cpp",
+			"string_view": "cpp",
+			"initializer_list": "cpp",
+			"memory_resource": "cpp",
+			"limits": "cpp"
+		}
+	}
+}

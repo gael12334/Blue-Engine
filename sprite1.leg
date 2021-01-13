@@ -1,0 +1,4 @@
+gline 0 0 10 0 97 40 
+grect 0 0 10 10 97 40
+gtext 1 1 "Hello World!" 91 40
+gimg 3 3 "test.seg"
