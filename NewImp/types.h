@@ -65,10 +65,10 @@ typedef struct BaseVTable_t {
 	DtorFn_t 	dtor;				/// Function pointer freeing an instance from memory.
 } BaseVTable_t;
 
-/// @brief 			Initialises a BaseVTable instance.
-/// @param copy 	A CopyFn_t function pointer for flexible copying.
-/// @param eq 		An EqualsFn_t function pointer for flexible comparaison.
-/// @param dtor 	A DtorFn_t function pointer for flexible deallocation.
+/// \brief 		Initialises a BaseVTable instance.
+/// \param copy 	A CopyFn_t function pointer for flexible copying.
+/// \param eq 		An EqualsFn_t function pointer for flexible comparaison.
+/// \param dtor 	A DtorFn_t function pointer for flexible deallocation.
 BaseVTable_t BaseVTable_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor) {
 	BaseVTable_t vt;
 	vt.copy = copy;
@@ -87,32 +87,33 @@ BaseVTable_t BaseVTable_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor) {
 #define MAX_TYPEINFO_STRUCT 100 	/// Defines the maximum amount of typeinfo instance accepted.
 
 typedef struct TypeInfo_t {			
-	BaseVTable_t 	base_vtable;	/// Predefined sets of function every registered type must provide.
+	BaseVTable_t 	base_vtable;		/// Predefined sets of function every registered type must provide.
 	unsigned short 	size;			/// Instance size in bytes.
 	unsigned int 	super;			/// Super struct id.
 	const char* 	name;			/// Type name.
 	void* 			custom_vtable;	/// User-defined custom vtable with custom function pointers.
 } TypeInfo_t;
 
-/// @brief 					Initialises a TypeInfo_t instance.
-/// @param copy 			A CopyFn_t function pointer for flexible copying.
-/// @param eq 				An EqualsFn_t function pointer for flexible comparaison.
-/// @param dtor 			A DtorFn_t function pointer for flexible deallocation.
-/// @param size 			The type's physical size. (Exemple: sizeof(int))
-/// @param super_id			The superclass-like structure, if the type is inherited.
-/// @param name 			The name of the type.
-/// @param custom_vtable 	Custom Vtable pointer.
-TypeInfo_t* TypeInfo_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned short size, unsigned int super_id, const char* name, void* custom_vtable) {
+/// \brief 				Initialises a TypeInfo_t instance.
+/// \param copy 			A CopyFn_t function pointer for flexible copying.
+/// \param eq 				An EqualsFn_t function pointer for flexible comparaison.
+/// \param dtor 			A DtorFn_t function pointer for flexible deallocation.
+/// \param size 			The type's physical size. (Exemple: sizeof(int))
+/// \param super			The superclass-like structure, if the type is inherited.
+/// \param name 			The name of the type.
+/// \param custom_vtable 		Custom Vtable pointer.
+TypeInfo_t* TypeInfo_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned short size, unsigned int super, const char* name, void* custom_vtable) {
 	TypeInfo_t* info = (TypeInfo_t*) malloc(sizeof(TypeInfo_t));
 	info->base_vtable = BaseVTable_ctor(copy, eq, dtor);
 	info->custom_vtable = custom_vtable;
 	info->name = name;
 	info->size = size;
-	info->super = super_id;
+	info->super = super;
 	return info;
 }
 
-/*	==============================
+/*	
+	==============================
 		Type register
 	==============================
 
@@ -120,47 +121,60 @@ TypeInfo_t* TypeInfo_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned 
 */
 
 static unsigned int registerCount = (unsigned int) -1;  /// Index incrementor used for the type registery. 
-static TypeInfo_t* registery[MAX_TYPEINFO_STRUCT];		/// Registery with MAX_TYPEINFO_STRUCT entries. 
+static TypeInfo_t* registery[MAX_TYPEINFO_STRUCT];	/// Registery with MAX_TYPEINFO_STRUCT entries. 
 
-/// @brief Registers a type into the registery. 
-/// @param copy 			A CopyFn_t function pointer for flexible copying.
-/// @param eq 				An EqualsFn_t function pointer for flexible comparaison.
-/// @param dtor 			A DtorFn_t function pointer for flexible deallocation.
-/// @param size 			The type's physical size. (Exemple: sizeof(int))
-/// @param super_id			The superclass-like structure, if the type is inherited.
-/// @param name 			The name of the type.
-/// @param custom_vtable 	Custom Vtable pointer.
-/// @return 				Returns the id of the registered type.
-inline const unsigned int TypeRegister_register(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned short size, unsigned int super_id, const char* name, void* custom_vtable) {
+/// \brief Registers a type into the registery. 
+/// \param copy 			A CopyFn_t function pointer for flexible copying.
+/// \param eq 				An EqualsFn_t function pointer for flexible comparaison.
+/// \param dtor 			A DtorFn_t function pointer for flexible deallocation.
+/// \param size 			The type's physical size. (Exemple: sizeof(int))
+/// \param super			The superclass like structure, if the type is inherited.
+/// \param name 			The name of the type.
+/// \param custom_vtable 		Custom Vtable pointer.
+/// \return 				Returns the id of the registered type.
+inline const unsigned int TypeRegister_register(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned short size, unsigned int super, const char* name, void* custom_vtable) {
 	registerCount++;
-	registery[registerCount] = TypeInfo_ctor(copy, eq, dtor, size, super_id, name, custom_vtable);
+	registery[registerCount] = TypeInfo_ctor(copy, eq, dtor, size, super, name, custom_vtable);
 	return registerCount;
 }
 
-/// @brief 		Get the type's physical size.
-/// @param id 	The specified type id. 
-/// @return 	Returns an unsigned int 
+/// \brief 	Get the type's physical size.
+/// \param id 	The specified type id. 
+/// \return 	Returns an unsigned int 
 inline unsigned short TypeRegister_getSize(unsigned int id) {
 	return registery[id]->size;
 }
 
+/// \brief 	Get the type's name.
+/// \param id 	The specified type id. 
+/// \return 	Returns a const C null-terminating string. 
 inline const char* TypeRegister_getName(unsigned int id) {
 	return registery[id]->name;
 }
 
+/// \brief 	Get the type's custom vtable pointer. 
+/// \param id 	The specified type id. 
+/// \return 	Returns a void pointer.
 inline const void* TypeRegister_getCustomVTable(unsigned int id) {
 	return registery[id]->custom_vtable;
 }
 
+/// \brief 	Get the type's base vtable.
+/// \param id 	The specified type id. 
+/// \return 	Returns a const BaseVTable_t pointer. Do not free!
 inline const BaseVTable_t* TypeRegister_getVTable(unsigned int id) {
 	return &registery[id]->base_vtable;
 }
 
+/// \brief 	Get the type's super id.
+/// \param id 	The specified type id. 
+/// \return 	Returns an unsigned int.
 inline unsigned int TypeRegister_getSuperId(unsigned int id) {
 	return registery[id]->super;
 }
 
-/*	==============================
+/*
+	==============================
 		Primitive type id's
 	==============================
 
