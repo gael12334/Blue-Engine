@@ -12,6 +12,8 @@ trouve dans le dossier "NewImp", court pour "New Implementation", parce que j'ai
 d'appliquer une façon de concevoir les concepts orientés objets une première fois et les
 résultats ainsi que la viabilité n'était pas ceux escomptés. 
 
+Prendre note que la documentation est incomplète. J'y travaille actuellement.
+
 Merci de respecter la propriété intellectuelle. Nul n'a autorisation de distribuer ou copier
 le code présenté.
 
@@ -24,6 +26,8 @@ This project started when I began studying in software engineering; I
 continue bringing progress to it during my free time. The source code is located in the
 "NewImp" folder, short for "New Implementation", because when I tried to implement these said 
 object oriented concepts for the first time, it ended up making my code unreadable, thus not sustainable. 
+
+Please take note that the documentation is incomplete. I am currently working on it. 
 
 Please respect intellectual property. No one has authorisation to distribute or copy the presented
 code. Thank you.
