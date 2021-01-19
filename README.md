@@ -15,7 +15,7 @@ résultats ainsi que la viabilité n'était pas ceux escomptés.
 Merci de respecter la propriété intellectuelle. Nul n'a autorisation de distribuer ou copier
 le code présenté.
 
-- English - 
+## English 
 Blue engine is a 2D game engine which uses the SDL2 librairy. Although this engine is coded in C, 
 I have tried to implement object oriented concepts such as inheritance, v-table, custom v-tables, 
 type registery, and more. 
