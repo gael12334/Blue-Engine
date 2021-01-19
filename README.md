@@ -25,5 +25,5 @@ continue bringing progress to it during my free time. The source code is located
 "NewImp" folder, short for "New Implementation", because I've tried to implement these said 
 object oriented concepts which ended up making my code unreadable, thus not sustainable. 
 
-Please respect intellectual property. None has authorisation to distribute or copy the presented
+Please respect intellectual property. No one has authorisation to distribute or copy the presented
 code. Thank you.
