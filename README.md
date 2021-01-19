@@ -22,8 +22,8 @@ type registery, and more.
 
 This project started when I began studying in software engineering; I 
 continue bringing progress to it during my free time. The source code is located in the
-"NewImp" folder, short for "New Implementation", because I've tried to implement these said 
-object oriented concepts which ended up making my code unreadable, thus not sustainable. 
+"NewImp" folder, short for "New Implementation", because when I tried to implement these said 
+object oriented concepts for the first time, it ended up making my code unreadable, thus not sustainable. 
 
 Please respect intellectual property. No one has authorisation to distribute or copy the presented
 code. Thank you.
