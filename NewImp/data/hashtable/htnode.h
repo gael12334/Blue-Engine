@@ -33,8 +33,8 @@ inline Bool_t HTNode_equals(void* self, void* node) {
 
 	if(HTNode_count(self_node) == HTNode_count(node_node)) {
 		while(self_node && node_node && result) {
-			result = Object_equals(Object_ctor(self_node->key.self, self_node->key.id), Object_ctor(node_node->key.self, node_node->key.id)) && result;
-			result = Object_equals(Object_ctor(self_node->entry.self, self_node->entry.id), Object_ctor(node_node->entry.self, node_node->entry.id)) && result;
+			result = Object_equals(&self_node->key, &node_node->key) && result;
+			result = Object_equals(&self_node->entry, &node_node->entry) && result;
 			self_node = self_node->next;
 			node_node = node_node->next;
 		}

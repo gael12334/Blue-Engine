@@ -65,7 +65,7 @@ typedef struct BaseVTable_t {
 	DtorFn_t 	dtor;				/// Function pointer freeing an instance from memory.
 } BaseVTable_t;
 
-/// \brief 		Initialises a BaseVTable instance.
+/// \brief 			Initialises a BaseVTable instance.
 /// \param copy 	A CopyFn_t function pointer for flexible copying.
 /// \param eq 		An EqualsFn_t function pointer for flexible comparaison.
 /// \param dtor 	A DtorFn_t function pointer for flexible deallocation.
@@ -75,6 +75,17 @@ BaseVTable_t BaseVTable_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor) {
 	vt.equals = eq;
 	vt.dtor = dtor;
 	return vt;
+}
+
+/// \brief 			Creates a BaseVTable_t pointer.
+/// \param copy 	A copying function pointer.
+/// \param eq 		A comparaison function pointer.
+/// \param dtor 	A memory deallocation function pointer.
+/// \return			Returns the adress of allocated BaseVTable_t instance.
+void* BaseVTable_createPointer(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor) {
+	BaseVTable_t* vtable = (BaseVTable_t*) malloc(sizeof(BaseVTable_t));
+	*vtable = BaseVTable_ctor(copy, eq, dtor);
+	return vtable;
 }
 
 /*	=============================
@@ -87,33 +98,33 @@ BaseVTable_t BaseVTable_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor) {
 #define MAX_TYPEINFO_STRUCT 100 	/// Defines the maximum amount of typeinfo instance accepted.
 
 typedef struct TypeInfo_t {			
-	BaseVTable_t 	base_vtable;		/// Predefined sets of function every registered type must provide.
+	void* 			vtable;			/// vtable pointer
+	unsigned int 	vtable_size;	/// Vtable size.
 	unsigned short 	size;			/// Instance size in bytes.
 	unsigned int 	super;			/// Super struct id.
 	const char* 	name;			/// Type name.
-	void* 			custom_vtable;	/// User-defined custom vtable with custom function pointers.
 } TypeInfo_t;
 
-/// \brief 				Initialises a TypeInfo_t instance.
+/// \brief 					Initialises a TypeInfo_t instance.
 /// \param copy 			A CopyFn_t function pointer for flexible copying.
 /// \param eq 				An EqualsFn_t function pointer for flexible comparaison.
 /// \param dtor 			A DtorFn_t function pointer for flexible deallocation.
 /// \param size 			The type's physical size. (Exemple: sizeof(int))
 /// \param super			The superclass-like structure, if the type is inherited.
 /// \param name 			The name of the type.
-/// \param custom_vtable 		Custom Vtable pointer.
-TypeInfo_t* TypeInfo_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned short size, unsigned int super, const char* name, void* custom_vtable) {
+/// \param vtableSize 		Size of custom vtable.
+/// \param custom_vtable 	Custom Vtable pointer.
+TypeInfo_t* TypeInfo_ctor(void* vtable, unsigned int vtable_size, unsigned short size, unsigned int super, const char* name) {
 	TypeInfo_t* info = (TypeInfo_t*) malloc(sizeof(TypeInfo_t));
-	info->base_vtable = BaseVTable_ctor(copy, eq, dtor);
-	info->custom_vtable = custom_vtable;
+	info->vtable = vtable;
 	info->name = name;
 	info->size = size;
 	info->super = super;
+	info->vtable_size = vtable_size;
 	return info;
 }
 
-/*	
-	==============================
+/*	==============================
 		Type register
 	==============================
 
@@ -121,7 +132,7 @@ TypeInfo_t* TypeInfo_ctor(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned 
 */
 
 static unsigned int registerCount = (unsigned int) -1;  /// Index incrementor used for the type registery. 
-static TypeInfo_t* registery[MAX_TYPEINFO_STRUCT];	/// Registery with MAX_TYPEINFO_STRUCT entries. 
+static TypeInfo_t* registery[MAX_TYPEINFO_STRUCT];		/// Registery with MAX_TYPEINFO_STRUCT entries. 
 
 /// \brief Registers a type into the registery. 
 /// \param copy 			A CopyFn_t function pointer for flexible copying.
@@ -130,51 +141,93 @@ static TypeInfo_t* registery[MAX_TYPEINFO_STRUCT];	/// Registery with MAX_TYPEIN
 /// \param size 			The type's physical size. (Exemple: sizeof(int))
 /// \param super			The superclass like structure, if the type is inherited.
 /// \param name 			The name of the type.
-/// \param custom_vtable 		Custom Vtable pointer.
+/// \param custom_vtable 	Custom Vtable pointer.
 /// \return 				Returns the id of the registered type.
-inline const unsigned int TypeRegister_register(CopyFn_t copy, EqualsFn_t eq, DtorFn_t dtor, unsigned short size, unsigned int super, const char* name, void* custom_vtable) {
+inline const unsigned int TypeRegister_register(void* vtable, unsigned int vtable_size, unsigned short size, unsigned int super, const char* name) {
 	registerCount++;
-	registery[registerCount] = TypeInfo_ctor(copy, eq, dtor, size, super, name, custom_vtable);
+	registery[registerCount] = TypeInfo_ctor(vtable, vtable_size, size, super, name);
 	return registerCount;
 }
 
-/// \brief 	Get the type's physical size.
+/// \brief 		Get the type's physical size.
 /// \param id 	The specified type id. 
 /// \return 	Returns an unsigned int 
 inline unsigned short TypeRegister_getSize(unsigned int id) {
 	return registery[id]->size;
 }
 
-/// \brief 	Get the type's name.
+/// \brief 		Get the type's name.
 /// \param id 	The specified type id. 
 /// \return 	Returns a const C null-terminating string. 
 inline const char* TypeRegister_getName(unsigned int id) {
 	return registery[id]->name;
 }
 
-/// \brief 	Get the type's custom vtable pointer. 
+/// \brief 		Get the type's vtable pointer. 
 /// \param id 	The specified type id. 
-/// \return 	Returns a void pointer.
-inline const void* TypeRegister_getCustomVTable(unsigned int id) {
-	return registery[id]->custom_vtable;
+/// \return 	Returns a void pointer. Do not free!
+inline const void* TypeRegister_getVTable(unsigned int id) {
+	return registery[id]->vtable;
 }
 
-/// \brief 	Get the type's base vtable.
+/// \brief 		Get the type's vtable size.
+/// \param id 	The specified type id. 
+/// \return 	Returns an unsigned int.
+inline unsigned int TypeRegister_getVTableSize(unsigned int id) {
+	return registery[id]->vtable_size;
+}
+
+/// \brief 		Get the type's base vtable.
 /// \param id 	The specified type id. 
 /// \return 	Returns a const BaseVTable_t pointer. Do not free!
-inline const BaseVTable_t* TypeRegister_getVTable(unsigned int id) {
-	return &registery[id]->base_vtable;
+inline const BaseVTable_t* TypeRegister_getBaseVTable(unsigned int id) {
+	return (BaseVTable_t*)registery[id]->vtable;
 }
 
-/// \brief 	Get the type's super id.
+/// \brief 		Get the type's super id.
 /// \param id 	The specified type id. 
 /// \return 	Returns an unsigned int.
 inline unsigned int TypeRegister_getSuperId(unsigned int id) {
 	return registery[id]->super;
 }
 
-/*
-	==============================
+/// \brief 		Checks if the specified type id is an inherited type.
+/// \param id_a Id to compare. Will check if this id is inherited from id_b.
+/// \param id_b Id used to compare.
+/// \return 	Returns a Bool_t where TRUE means it is inherited, while FALSE is otherwise.
+inline Bool_t TypeRegister_IsInherited(unsigned int id_a, unsigned int id_b) {
+	if(id_a == id_b)
+		return TRUE;
+	
+	unsigned int temp = id_b;
+	while(registery[temp]->super) {
+		if(registery[temp]->super == 0) 
+			break;
+		if(registery[temp]->super == id_a)
+			return TRUE;
+		temp = registery[temp]->super;
+	}
+
+	return FALSE;
+}
+
+/// \brief		Get's the base type id. 
+/// \param id	The type's id.
+/// \return 	Returns the base type's id.
+unsigned int TypeRegister_getRootId(unsigned int id) {
+	if(registery[id]->super) {
+		unsigned int temp = id;
+		unsigned int result = temp;
+		while(temp) {
+			result = temp;
+			temp = registery[id]->super;
+		}
+		return result;
+	}
+	return id; 
+}
+
+/*	==============================
 		Primitive type id's
 	==============================
 
@@ -191,13 +244,13 @@ inline Bool_t EQUALS_BY_VALUE_FUNCTION(void* self, void* inst) {
 	return self == inst;
 }
 
-#define DTOR_BY_VALUE_FUNCTION Generic_dtorByValue
+#define DTOR_BY_VALUE_FUNCTION Generic_dtorByValue 
 inline Bool_t DTOR_BY_VALUE_FUNCTION(void** self) {
 	return TRUE;
 }
 
-const unsigned int int_id = TypeRegister_register(COPY_BY_VALUE_FUNCTION, EQUALS_BY_VALUE_FUNCTION, DTOR_BY_VALUE_FUNCTION, sizeof(long long), 0, "int", 0);
+const unsigned int int_id = TypeRegister_register(BaseVTable_createPointer(COPY_BY_VALUE_FUNCTION, EQUALS_BY_VALUE_FUNCTION, DTOR_BY_VALUE_FUNCTION), sizeof(BaseVTable_t), sizeof(long long), 0, "int");
 
-const unsigned int float_id = TypeRegister_register(COPY_BY_VALUE_FUNCTION, EQUALS_BY_VALUE_FUNCTION, DTOR_BY_VALUE_FUNCTION, sizeof(double), 0, "float", 0);
+const unsigned int float_id = TypeRegister_register(BaseVTable_createPointer(COPY_BY_VALUE_FUNCTION, EQUALS_BY_VALUE_FUNCTION, DTOR_BY_VALUE_FUNCTION), sizeof(BaseVTable_t), sizeof(double), 0, "float");
 
 #endif

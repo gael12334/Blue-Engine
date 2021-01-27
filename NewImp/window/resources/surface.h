@@ -27,7 +27,7 @@ void* Surface_pixelCopy(void* self) {
 		self_surface->sdl->format->Amask);
 	
 	copy_surface->base = BaseResource_ctor(copy_surface, self_surface->base.base.id);
-	copy_surface->sdl_lock = 0;
+	copy_surface->lock = 0;
 
 	return copy_surface;
 }
@@ -65,7 +65,8 @@ Bool_t Surface_dtor(void** self) {
 		if(*self) {
 			Surface_t* s = (Surface_t*) *self;
 			SDL_FreeSurface(s->sdl);
-			SDL_DestroyTexture(s->sdl_lock);
+			if(s->lock)
+				Texture_dtor((void**)&s->lock);
 			free(*self);
 			*self = 0;
 			return TRUE;
@@ -74,12 +75,24 @@ Bool_t Surface_dtor(void** self) {
 	return FALSE;
 }
 
-const unsigned int Surface_id = TypeRegister_register(Surface_copy, Surface_equals, Surface_dtor, sizeof(Surface_t), BaseResource_id, "Surface_t", 0);
+const unsigned int Surface_id = 
+	TypeRegister_register(
+		BaseVTable_createPointer(
+			Surface_copy, 
+			Surface_equals, 
+			Surface_dtor
+		), 
+		sizeof(BaseVTable_t),
+		sizeof(Surface_t), 
+		BaseResource_id, 
+		"Surface_t"
+	)
+;
 
 Surface_t* Surface_ctor(const char filename[]) {
 	Surface_t* s = (Surface_t*) malloc(sizeof(Surface_t));
 	s->sdl = IMG_Load(filename);
-	s->sdl_lock = 0;
+	s->lock = 0;
 	s->base = BaseResource_ctor(s, Surface_id);
 	return s;
 }

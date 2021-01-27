@@ -29,7 +29,19 @@ Bool_t Texture_dtor(void** self) {
 	return FALSE;
 }
 
-const unsigned int Texture_id = TypeRegister_register(Texture_copy, Texture_equals, Texture_dtor, sizeof(Texture_t), BaseResource_id, "Texture_t", 0);
+const unsigned int Texture_id = 
+	TypeRegister_register(
+		BaseVTable_createPointer(
+			Texture_copy, 
+			Texture_equals, 
+			Texture_dtor
+		), 
+		sizeof(BaseVTable_t),
+		sizeof(Texture_t), 
+		BaseResource_id, 
+		"Texture_t"
+	)
+;
 
 Texture_t* Texture_ctor(SDL_Texture* sdl) {
 	Texture_t* handle = (Texture_t*) malloc(sizeof(Texture_t));

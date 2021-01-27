@@ -37,7 +37,7 @@ Bool_t Pair_dtor(void** self) {
 }
 
 // id
-const unsigned int Pair_id = TypeRegister_register(Pair_copy, Pair_equals, Pair_dtor, sizeof(Pair_t), 0, "Pair_t", 0);
+//const unsigned int Pair_id = TypeRegister_register(Pair_copy, Pair_equals, Pair_dtor, sizeof(Pair_t), 0, "Pair_t", 0, 0);
 
 // function
 Pair_t* Pair_ctor(Object_t key, Object_t entry) {

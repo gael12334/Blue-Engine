@@ -54,7 +54,19 @@ Bool_t HashTable_dtor(void** self) {
 	return FALSE;
 }
 
-const unsigned int HashTable_id = TypeRegister_register(HashTable_copy, HashTable_equals, HashTable_dtor, sizeof(HashTable_t), 0, "HashTable_t", 0);
+const unsigned int HashTable_id = 
+	TypeRegister_register(
+		BaseVTable_createPointer(
+			HashTable_copy, 
+			HashTable_equals, 
+			HashTable_dtor
+		),
+		sizeof(BaseVTable_t),
+		sizeof(HashTable_t), 
+		0, 
+		"HashTable_t"		
+	)
+;
 
 // functions
 HashTable_t* HashTable_ctor(unsigned int type1, unsigned int type2) {
@@ -90,7 +102,7 @@ static Bool_t HashTable_seekNode(HashTable_t* ht, Object_t key, HTNode_t** seeke
 
 		// seeks the node by comparing the key with node's keys.
 		while(node) {
-			Bool_t result = Object_equals(Object_ctor(key.self, key.id), Object_ctor(node->key.self, node->key.id));
+			Bool_t result = Object_equals(&key, &node->key);
 			if(!result) {
 				if(node->next == 0)
 					last = node;
@@ -136,14 +148,12 @@ static Bool_t HashTable_seekNode(HashTable_t* ht, Object_t key, HTNode_t** seeke
 static Bool_t HashTable_checkType(HashTable_t* ht, Object_t obj, char type) {
 	switch(type) {
 		case HT_KEY: {
-			unsigned int superId = TypeRegister_getSuperId(obj.id);
-			return (ht->keyId == obj.id) || (ht->keyId == superId);
+			return TypeRegister_IsInherited(ht->keyId, obj.id);
 			break;
 		}
 
 		case HT_ENTRY: {
-			unsigned int superId = TypeRegister_getSuperId(obj.id);
-			return (ht->entryId == obj.id) || (ht->entryId == superId);
+			return TypeRegister_IsInherited(ht->entryId, obj.id);
 			break;
 		}
 	}
@@ -158,7 +168,7 @@ inline char HashTable_set(HashTable_t* ht, Object_t key, Object_t entry) {
 		node->entry = entry;
 		return TRUE;
 	}
-
+	
 	return HT_BADTYPE;
 }
 
@@ -214,6 +224,10 @@ inline unsigned int HashTable_count(HashTable_t* ht) {
 
 inline HTIterator_t HashTable_begin(HashTable_t* ht) {
 	return HTIterator_ctor(ht->nodes);
+}
+
+inline LinearHTIterator_t HashTable_linearBegin(HashTable_t* ht) {
+	return LinearHTIterator_ctor(ht->nodes);
 }
 
 #endif

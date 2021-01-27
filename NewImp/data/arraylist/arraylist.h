@@ -40,7 +40,7 @@ Bool_t ArrayList_equals(void* self, void* reference) {
 		if(arr1->count == arr2->count) {
 			if(arr1->id == arr2->id) {
 				for(unsigned int i = 0; i < arr1->count; i++) {
-					if(!Object_equals(Object_ctor(arr1->data[i].self, arr1->data[i].id), Object_ctor(arr2->data[i].self, arr2->data[i].id)))
+					if(!Object_equals(arr1->data[i].self, arr2->data[i].self))
 						return FALSE;
 				}
 				return TRUE;
@@ -64,7 +64,19 @@ Bool_t ArrayList_dtor(void** self) {
 }
 
 // type id
-const unsigned int Array_id = TypeRegister_register(ArrayList_copy, ArrayList_equals, ArrayList_dtor, sizeof(ArrayList_t), 0, "ArrayList_t", 0);
+const unsigned int Array_id = 
+	TypeRegister_register(
+		BaseVTable_createPointer(
+			ArrayList_copy, 
+			ArrayList_equals, 
+			ArrayList_dtor
+		), 
+		sizeof(BaseVTable_t), 
+		sizeof(ArrayList_t),
+		0, 
+		"ArrayList_t"
+	)
+;
 
 // functions
 inline ArrayList_t* ArrayList_ctor(unsigned int id) {

@@ -36,5 +36,11 @@ inline void DLIterator_reset(DLIterator_t* it) {
 	it->node = it->first;
 }
 
+inline const Object_t* DLIterator_get(DLIterator_t* it) {
+	if(it->node == END_ITERATOR)
+		return 0;
+	return &it->node->obj;
+}
+
 #undef END_ITERATOR
 #endif

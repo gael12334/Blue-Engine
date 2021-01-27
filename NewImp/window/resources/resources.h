@@ -8,32 +8,20 @@ typedef struct BaseResource_t {
 } BaseResource_t;
 
 // = = = = = 
-void* BaseResource_copy(void* self) {
-	Object_t* base = (Object_t*) self;
-	const BaseVTable_t* vtable = TypeRegister_getVTable(base->id);
-	return vtable->copy(self);
+inline void* BaseResource_copy(void* self) {
+	return Object_copy(self);
 }
 
-Bool_t BaseResource_equals(void* self, void* ref) {
-	Object_t* base = (Object_t*) self;
-	const BaseVTable_t* vtable = TypeRegister_getVTable(base->id);
-	return vtable->equals(self, ref);
+inline Bool_t BaseResource_equals(void* self, void* ref) {
+	return Object_equals(self, ref);
 }
 
-Bool_t BaseResource_dtor(void** self) {
-	if(self) {
-		if(*self) {
-			Object_t* base = (Object_t*) self;
-			const BaseVTable_t* vtable = TypeRegister_getVTable(base->id);
-			return vtable->dtor(self);
-		}
-	}
-
-	return FALSE;
+inline Bool_t BaseResource_dtor(void** self) {
+	return Object_dtor(self);
 }
 // = = = = = 
 
-const unsigned int BaseResource_id = TypeRegister_register(BaseResource_copy, BaseResource_equals, BaseResource_dtor, sizeof(BaseResource_t), 0, "BaseResource_t", 0);
+const unsigned int BaseResource_id = TypeRegister_register(BaseVTable_createPointer(BaseResource_copy, BaseResource_equals, BaseResource_dtor), sizeof(BaseVTable_t), sizeof(BaseResource_t), 0, "BaseResource_t");
 
 inline BaseResource_t BaseResource_ctor(void* self, unsigned int id) {
 	BaseResource_t resource;
@@ -54,7 +42,7 @@ typedef struct Texture_t {
 typedef struct Surface_t {
 	BaseResource_t 	base;
 	SDL_Surface* 	sdl;
-	SDL_Texture* 	sdl_lock; 
+	Texture_t* 		lock; 
 } Surface_t;
 
 typedef struct Font_t {

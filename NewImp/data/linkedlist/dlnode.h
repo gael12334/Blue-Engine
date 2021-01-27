@@ -26,4 +26,8 @@ Bool_t DLNode_dtor(void** node) {
 	return FALSE;
 }
 
+inline Object_t DLNode_getObject(DLNode_t* node) {
+	return node->obj;
+}
+
 #endif

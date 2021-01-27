@@ -50,9 +50,9 @@ inline void Window_init(const char title[]) {
 }
 
 void Window_refreshSurface(Window_t* self, Surface_t* surface) {
-	if(surface->sdl_lock) 
-		SDL_DestroyTexture(surface->sdl_lock);
-	surface->sdl_lock = SDL_CreateTextureFromSurface(self->sdl_renderer, surface->sdl);
+	if(surface->lock) 
+		Texture_dtor((void**)&surface->lock);
+	surface->lock = Texture_ctor(SDL_CreateTextureFromSurface(self->sdl_renderer, surface->sdl));
 }
 
 inline Texture_t* Window_surfaceToTexture(Window_t* self, Surface_t* surface) {
@@ -87,7 +87,7 @@ inline void Window_refresh(Window_t* self) {
 
 inline unsigned int Window_renderSurfaceEx(Window_t* self, Rect_t* dest, Surface_t* surface, Rect_t* src) {
 	SDL_Surface* windowSurface = SDL_GetWindowSurface(self->sdl_window);
-	return SDL_BlitSurface(surface->sdl, (SDL_Rect*) src, windowSurface, (SDL_Rect*) dest);
+	return SDL_BlitSurface(surface->sdl, (SDL_Rect*) dest, windowSurface, (SDL_Rect*) src);
 }
 
 inline unsigned int Window_renderSizedFullSurface(Window_t* self, Rect_t rect, Surface_t* surface) {
@@ -136,5 +136,15 @@ inline void Window_renderLine(Window_t* self, Point2D_t start, Point2D_t end) {
 	SDL_RenderDrawLine(self->sdl_renderer, start.axis[0], start.axis[1], end.axis[0], end.axis[1]);
 }
 
+// =============================
+// 		Event
+// =============================
+inline unsigned int Window_getEventType(Window_t* window) {
+	return window->sdl_event->type;
+}
+
+inline Point2D_t Window_getCursorPos(Window_t* window) {
+	return Point2D_ctor(window->sdl_event->button.x, window->sdl_event->button.y);
+}
 
 #endif

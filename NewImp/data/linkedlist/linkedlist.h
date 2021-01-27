@@ -4,11 +4,11 @@
 #include "dliterator.h"
 
 typedef struct LinkedList_t {
-	Object_t obj;
-	DLNode_t* first;
-	DLNode_t* last;
-	unsigned int count;
-	unsigned int id;
+	Object_t 		obj;
+	DLNode_t* 		first;
+	DLNode_t* 		last;
+	unsigned int 	count;
+	unsigned int 	id;
 } LinkedList_t; 
 
 // foward declaration
@@ -48,7 +48,7 @@ Bool_t LinkedList_equals(void* self, void* ref) {
 	DLIterator_t it_ref = DLIterator_ctor(ref_list->first, ref_list->last);
 
 	while(!(DLIterator_ended(&it_list) || DLIterator_ended(&it_ref))) {
-		if(Object_equals(it_list.node->obj, it_ref.node->obj)) 
+		if(Object_equals(DLNode_getObject(it_list.node).self, DLNode_getObject(it_ref.node).self)) 
 			return FALSE;
 		DLIterator_next(&it_list);
 		DLIterator_next(&it_ref);
@@ -71,7 +71,19 @@ Bool_t LinkedList_dtor(void** self) {
 }
 
 // type id
-const unsigned int LinkedList_id = TypeRegister_register(LinkedList_copy, LinkedList_equals, LinkedList_dtor, sizeof(LinkedList_t), 0, "LinkedList_t", 0);
+const unsigned int LinkedList_id = 
+	TypeRegister_register(
+		BaseVTable_createPointer(
+			LinkedList_copy, 
+			LinkedList_equals, 
+			LinkedList_dtor
+		), 
+		sizeof(LinkedList_t),
+		sizeof(LinkedList_t), 
+		0, 
+		"LinkedList_t"
+	)
+;
 
 // functions
 LinkedList_t* LinkedList_ctor(unsigned int id) {

@@ -31,7 +31,19 @@ Bool_t Font_dtor(void** self) {
 	return FALSE;
 }
 
-const unsigned int Font_id = TypeRegister_register(Font_copy, Font_equals, Font_dtor, sizeof(Font_t), BaseResource_id, "Font_t", 0);
+const unsigned int Font_id = 
+	TypeRegister_register(
+		BaseVTable_createPointer(
+			Font_copy, 
+			Font_equals, 
+			Font_dtor
+		), 
+		sizeof(BaseVTable_t),
+		sizeof(Font_t), 
+		BaseResource_id, 
+		"Font_t"
+	)
+;
 
 Font_t* Font_ctor(const char filename[], int size) {
 	Font_t* handle = (Font_t*) malloc(sizeof(Font_t));
@@ -44,7 +56,7 @@ Font_t* Font_ctor(const char filename[], int size) {
 Surface_t* Font_blend(const char text[], Font_t* self, SDL_Color color) {
 	Surface_t* s = (Surface_t*) malloc(sizeof(Surface_t));
 	s->sdl = TTF_RenderText_Blended(self->sdl, text, color);
-	s->sdl_lock = 0;
+	s->lock = 0;
 	s->base = BaseResource_ctor(s, Surface_id);
 	return s;
 }
